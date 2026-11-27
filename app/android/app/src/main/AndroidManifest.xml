@@ -46,6 +46,10 @@
                 <category android:name="android.intent.category.BROWSABLE"/>
                 <data android:scheme="https" android:host="www.promptindo.app" android:pathPrefix="/reset-password"/>
                 <data android:scheme="https" android:host="promptindo.app" android:pathPrefix="/reset-password"/>
+                <!-- Supabase currently falls back to the Site URL root; this
+                     lets the reset fragment reach the app after the redirect. -->
+                <data android:scheme="https" android:host="www.promptindo.app" android:path="/"/>
+                <data android:scheme="https" android:host="promptindo.app" android:path="/"/>
                 <data android:scheme="https" android:host="promptindo-rkkhatab872-4491s-projects.vercel.app"/>
             </intent-filter>
             <!-- Custom scheme fallback used by the in-app reset flow. -->
