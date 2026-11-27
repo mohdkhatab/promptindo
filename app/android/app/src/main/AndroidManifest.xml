@@ -27,14 +27,13 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
-            <!-- Deep links (app_links + Firebase Hosting assetlinks.json):
+            <!-- Deep links (app_links + Vercel assetlinks.json):
                  prompt pages open in-app even from a browser. -->
             <intent-filter android:autoVerify="true">
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
-                <data android:scheme="https" android:host="prompindo.web.app"/>
-                <data android:scheme="https" android:host="prompindo.firebaseapp.com"/>
+                <data android:scheme="https" android:host="promptindo.vercel.app"/>
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.

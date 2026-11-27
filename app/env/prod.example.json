@@ -1,0 +1,7 @@
+{
+  "SUPABASE_URL": "https://YOUR_PROD_PROJECT_REF.supabase.co",
+  "SUPABASE_ANON_KEY": "YOUR_PROD_SUPABASE_ANON_KEY",
+  "API_BASE_URL": "https://promptindo.vercel.app",
+  "GOOGLE_WEB_CLIENT_ID": "YOUR_PROD_GOOGLE_WEB_CLIENT_ID.apps.googleusercontent.com",
+  "SITE_URL": "https://promptindo.vercel.app"
+}
