@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/errors/supabase_error_mapper.dart';
@@ -96,6 +97,13 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
     try {
       await repo.signInWithGoogle();
       await _checkBanned();
+    } on PlatformException catch (e) {
+      _fail(
+        e.code == 'sign_in_failed'
+            ? 'Google sign-in is not configured for this build yet. '
+                  'Please use email for now.'
+            : 'Google sign-in failed. Please try again.',
+      );
     } catch (e) {
       _fail(_messageFor(e));
     }

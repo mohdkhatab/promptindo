@@ -27,12 +27,19 @@ class AppShell extends ConsumerStatefulWidget {
 
 class _AppShellState extends ConsumerState<AppShell> {
   int _navIndex = 0; // which pill is highlighted (0..4, never 2)
-  int _tabIndex = 0; // which of the four kept-alive tabs is visible
+  late final PageController _pageController;
 
   @override
   void initState() {
     super.initState();
+    _pageController = PageController();
     Future.microtask(_bootstrap);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   Future<void> _bootstrap() async {
@@ -56,29 +63,28 @@ class _AppShellState extends ConsumerState<AppShell> {
   void _onSelect(int index) {
     switch (index) {
       case 0:
-        setState(() {
-          _navIndex = 0;
-          _tabIndex = 0;
-        });
+        _goToTab(navIndex: 0, pageIndex: 0);
       case 1:
-        setState(() {
-          _navIndex = 1;
-          _tabIndex = 1;
-        });
+        _goToTab(navIndex: 1, pageIndex: 1);
       case 2:
         Navigator.of(context).push(
           GlassPageRoute<void>(builder: (_) => const CreatePromptScreen()),
         );
       case 3:
-        setState(() {
-          _navIndex = 3;
-          _tabIndex = 2;
-        });
+        _goToTab(navIndex: 3, pageIndex: 2);
       case 4:
-        setState(() {
-          _navIndex = 4;
-          _tabIndex = 3;
-        });
+        _goToTab(navIndex: 4, pageIndex: 3);
+    }
+  }
+
+  void _goToTab({required int navIndex, required int pageIndex}) {
+    setState(() => _navIndex = navIndex);
+    if (_pageController.hasClients) {
+      _pageController.animateToPage(
+        pageIndex,
+        duration: const Duration(milliseconds: 280),
+        curve: Curves.easeOutCubic,
+      );
     }
   }
 
@@ -87,8 +93,9 @@ class _AppShellState extends ConsumerState<AppShell> {
     return Scaffold(
       backgroundColor: Colors.transparent,
       extendBody: true,
-      body: IndexedStack(
-        index: _tabIndex,
+      body: PageView(
+        controller: _pageController,
+        physics: const NeverScrollableScrollPhysics(),
         children: const [
           HomeScreen(),
           ExploreScreen(),

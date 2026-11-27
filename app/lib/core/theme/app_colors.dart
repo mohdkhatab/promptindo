@@ -12,20 +12,20 @@ class AppColors {
 
   // Light mode background: iOS system background grey. NOT pure white —
   // pure white would make the white glass panels invisible.
-  static const Color lightBackground = Color(0xFFF5F5F7);
+  static const Color lightBackground = Color(0xFFFFFFFF);
 
   // Labels on the raw background (not on glass).
   static const Color darkLabel = Color(0xFFFFFFFF);
   static const Color darkLabelSecondary = Color(0x8CFFFFFF); // white 55%
-  static const Color lightLabel = Color(0xFF1C1C1E); // near-black
-  static const Color lightLabelSecondary = Color(0x8A1C1C1E); // ~55%
+  static const Color lightLabel = Color(0xFF111114); // near-black
+  static const Color lightLabelSecondary = Color(0xFF6E6E73); // muted grey
 
   // iOS system red — text/icons on glass only, never a solid fill block.
   static const Color destructive = Color(0xFFFF3B30);
 
   /// The single muted accent, used only when a hue is unavoidable
   /// (soft graphite-blue). Black-on-white / white-on-black comes first.
-  static const Color accent = Color(0xFF54647A);
+  static const Color accent = Color(0xFF6D5DF6);
 
   /// Backdrop for every glass surface.
   static Widget background(BuildContext context, {required bool animated}) {

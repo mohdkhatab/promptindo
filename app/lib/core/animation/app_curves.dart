@@ -27,7 +27,7 @@ class AppMotion {
   static const Duration dotFade = Duration(milliseconds: 200);
   static const Duration errorShake = Duration(milliseconds: 400);
   static const Duration focusGlow = Duration(milliseconds: 200);
-  static const Duration themeFade = Duration(milliseconds: 300);
+  static const Duration themeFade = Duration(milliseconds: 200);
   static const Duration likeButton = Duration(milliseconds: 350);
 
   /// Stagger offset between list items on a screen's first load.

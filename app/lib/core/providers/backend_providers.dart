@@ -23,6 +23,7 @@ import '../../features/prompts/data/supabase_interaction_repository.dart';
 import '../../features/prompts/data/supabase_prompt_repository.dart';
 import '../../features/prompts/domain/interaction_repository.dart';
 import '../../features/prompts/domain/prompt_repository.dart';
+import '../services/category_service.dart';
 import '../services/fcm.dart';
 import '../services/media_service.dart';
 
@@ -69,6 +70,14 @@ final promptRepositoryProvider = Provider<PromptRepository>(
 /// receives the Appwrite server key.
 final mediaServiceProvider = Provider<MediaService>(
   (ref) => MediaService(
+    ref.watch(supabaseClientProvider),
+    ref.watch(httpClientProvider),
+  ),
+);
+
+/// Free-text category resolution; there is no in-app category catalogue.
+final categoryServiceProvider = Provider<CategoryService>(
+  (ref) => CategoryService(
     ref.watch(supabaseClientProvider),
     ref.watch(httpClientProvider),
   ),

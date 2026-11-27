@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:share_plus/share_plus.dart';
 
-import '../../../core/animation/app_curves.dart';
 import '../../../core/providers/app_providers.dart';
 import '../../../core/providers/auth_providers.dart';
 import '../../../core/providers/backend_providers.dart';
@@ -146,30 +145,23 @@ class _PromptDetailsScreenState extends ConsumerState<PromptDetailsScreen> {
                   const SizedBox(height: AppSpace.lg),
                   if (prompt.thumbnailUrl.isNotEmpty)
                     Center(
-                      child: Hero(
-                        tag: AppMotion.thumbHero(prompt.id),
-                        child: ClipRRect(
-                          borderRadius: AppSpace.cardRadius,
-                          child: CachedNetworkImage(
-                            imageUrl: prompt.thumbnailUrl,
-                            width: double.infinity,
-                            height: 210,
-                            fit: BoxFit.cover,
-                            errorWidget: (_, _, _) => const SizedBox(height: 0),
-                          ),
+                      child: ClipRRect(
+                        borderRadius: AppSpace.cardRadius,
+                        child: CachedNetworkImage(
+                          imageUrl: prompt.thumbnailUrl,
+                          width: double.infinity,
+                          height: 210,
+                          fit: BoxFit.cover,
+                          memCacheWidth: 1000,
+                          fadeInDuration: const Duration(milliseconds: 150),
+                          errorWidget: (_, _, _) => const SizedBox(height: 0),
                         ),
                       ),
                     ),
                   const SizedBox(height: AppSpace.lg),
-                  Hero(
-                    tag: AppMotion.titleHero(prompt.id),
-                    child: Material(
-                      type: MaterialType.transparency,
-                      child: Text(
-                        prompt.title,
-                        style: t.onBackgroundStyle(AppType.title()),
-                      ),
-                    ),
+                  Text(
+                    prompt.title,
+                    style: t.onBackgroundStyle(AppType.title()),
                   ),
                   const SizedBox(height: AppSpace.sm),
                   // Author row with follow.

@@ -15,8 +15,6 @@ import '../../../core/widgets/glass_input.dart';
 import '../../../core/widgets/glass_sheets.dart';
 import '../../../core/widgets/glass_toast.dart';
 import '../../../core/widgets/spring_press.dart';
-import '../../categories/domain/category.dart';
-import '../../categories/presentation/category_providers.dart';
 import '../domain/prompt.dart';
 
 /// Publish (and edit-free v1: create only) a prompt.
@@ -42,7 +40,7 @@ class _CreatePromptScreenState extends ConsumerState<CreatePromptScreen> {
   final _tags = TextEditingController();
   final _aiModel = TextEditingController(text: 'GPT-4o');
 
-  Category? _category;
+  final _category = TextEditingController();
   PromptVisibility _visibility = PromptVisibility.public;
   CompressedImage? _image;
   bool _busy = false;
@@ -50,6 +48,7 @@ class _CreatePromptScreenState extends ConsumerState<CreatePromptScreen> {
 
   @override
   void dispose() {
+    _category.dispose();
     _title.dispose();
     _description.dispose();
     _content.dispose();
@@ -89,21 +88,23 @@ class _CreatePromptScreenState extends ConsumerState<CreatePromptScreen> {
       );
       return;
     }
-    if (_category == null) {
-      setState(() => _failedAttempts++);
-      GlassToast.show(
-        context,
-        'Pick a category',
-        icon: Icons.error_outline_rounded,
-      );
-      return;
-    }
-
     final uid = ref.read(currentUidProvider);
     if (uid == null) return;
 
     setState(() => _busy = true);
     try {
+      var categoryId = '';
+      final categoryName = _category.text.trim();
+      if (categoryName.isNotEmpty) {
+        try {
+          categoryId =
+              await ref.read(categoryServiceProvider).resolve(categoryName) ??
+              '';
+        } catch (_) {
+          // Category is optional; a resolver failure must not block publishing.
+        }
+      }
+
       String thumbnailUrl = '';
       String thumbnailPath = '';
       if (_image != null) {
@@ -123,7 +124,7 @@ class _CreatePromptScreenState extends ConsumerState<CreatePromptScreen> {
         title: _title.text.trim(),
         description: _description.text.trim(),
         promptContent: _content.text.trim(),
-        categoryId: _category!.id,
+        categoryId: categoryId,
         tags: _tags.text
             .split(',')
             .map((tag) => tag.trim().toLowerCase())
@@ -171,7 +172,6 @@ class _CreatePromptScreenState extends ConsumerState<CreatePromptScreen> {
   @override
   Widget build(BuildContext context) {
     final t = GlassTokens.of(context);
-    final categories = ref.watch(categoriesProvider);
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -242,73 +242,11 @@ class _CreatePromptScreenState extends ConsumerState<CreatePromptScreen> {
                 maxLines: 14,
               ),
               const SizedBox(height: AppSpace.md),
-              // Category picker.
-              Text('CATEGORY', style: t.onGlass(AppType.micro())),
-              const SizedBox(height: AppSpace.xs),
-              GlassContainer(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpace.lg,
-                  vertical: 12,
-                ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        _category == null
-                            ? 'Select a category'
-                            : '${_category!.icon}  ${_category!.name}',
-                        style: _category == null
-                            ? t.onGlassMuted(AppType.body())
-                            : t.onGlass(AppType.body()),
-                      ),
-                    ),
-                    Icon(Icons.expand_more_rounded, color: t.textSecondary),
-                  ],
-                ),
+              GlassInput(
+                controller: _category,
+                label: 'CATEGORY',
+                hint: 'e.g. Marketing, Coding, Personal',
               ),
-              if (_category == null && _failedAttempts > 0)
-                Padding(
-                  padding: const EdgeInsets.only(left: 4, top: 4),
-                  child: Text(
-                    'Pick a category',
-                    style: AppType.caption(color: const Color(0xFFFF3B30)),
-                  ),
-                ),
-              if (categories.value != null && categories.value!.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: AppSpace.sm),
-                  child: Wrap(
-                    spacing: AppSpace.sm,
-                    runSpacing: AppSpace.sm,
-                    children: [
-                      for (final category in categories.value!)
-                        SpringPress(
-                          onTap: () => setState(() => _category = category),
-                          child: AnimatedContainer(
-                            duration: AppMotion.themeFade,
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 7,
-                            ),
-                            decoration: BoxDecoration(
-                              color: _category?.id == category.id
-                                  ? const Color(0xE6FFFFFF)
-                                  : Colors.transparent,
-                              borderRadius: BorderRadius.circular(1000),
-                              border: Border.all(
-                                color: t.borderStrong,
-                                width: 1,
-                              ),
-                            ),
-                            child: Text(
-                              '${category.icon} ${category.name}',
-                              style: t.onGlass(AppType.caption()),
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
               const SizedBox(height: AppSpace.lg),
               GlassInput(
                 controller: _tags,

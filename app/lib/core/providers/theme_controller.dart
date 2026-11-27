@@ -5,7 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// Theme mode preference — a *UI* preference only, so SharedPreferences is the
 /// right store (per the brief: nothing domain-related goes in prefs).
 ///
-/// Defaults to the platform brightness on first launch, then persists the
+/// Defaults to the clean white theme on first launch, then persists the
 /// user's explicit choice. The theme itself cross-fades over 300ms via
 /// `MaterialApp.themeAnimationDuration`.
 class ThemeController extends Notifier<ThemeMode> {
@@ -14,7 +14,7 @@ class ThemeController extends Notifier<ThemeMode> {
   @override
   ThemeMode build() {
     _load();
-    return ThemeMode.system;
+    return ThemeMode.light;
   }
 
   Future<void> _load() async {
@@ -23,7 +23,7 @@ class ThemeController extends Notifier<ThemeMode> {
     final mode = switch (raw) {
       'light' => ThemeMode.light,
       'dark' => ThemeMode.dark,
-      _ => ThemeMode.system,
+      _ => ThemeMode.light,
     };
     if (mode != state) state = mode;
   }

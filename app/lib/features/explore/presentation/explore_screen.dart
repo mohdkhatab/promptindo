@@ -7,19 +7,14 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/glass_tokens.dart';
 import '../../../core/widgets/empty_state.dart';
 import '../../../core/widgets/glass_button.dart';
-import '../../../core/widgets/glass_container.dart';
 import '../../../core/widgets/glass_input.dart';
 import '../../../core/widgets/shimmer.dart';
-import '../../../core/widgets/spring_press.dart';
 import '../../../core/widgets/stagger.dart';
-import '../../categories/presentation/category_providers.dart';
 import '../../prompts/presentation/feed_controller.dart';
 import '../../prompts/presentation/prompt_details_screen.dart';
 import '../../prompts/presentation/widgets/widgets.dart';
-import '../../categories/domain/category.dart';
 
-/// Explore: search (tag + title prefix) above a category grid, with the
-/// selected category's feed underneath.
+/// Explore: search over title/tags plus the latest public prompts.
 class ExploreScreen extends ConsumerStatefulWidget {
   const ExploreScreen({super.key});
 
@@ -172,10 +167,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
   }
 
   List<Widget> _exploreSlivers() {
-    final categories = ref.watch(categoriesProvider);
-    final selected = ref.watch(exploreCategoryProvider);
     final feed = ref.watch(categoryFeedProvider);
-
     return [
       SliverToBoxAdapter(
         child: Padding(
@@ -185,67 +177,14 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
             AppSpace.screen,
             AppSpace.sm,
           ),
-          child: SectionLabel(
-            'Browse by category',
-            trailing: selected == null
-                ? null
-                : GlassTextButton(
-                    label: 'Clear',
-                    color: GlassTokens.of(context).onBackground,
-                    onPressed: () => _select(null),
-                  ),
-          ),
+          child: SectionLabel('Latest prompts'),
         ),
       ),
-      if (categories.isLoading)
-        const SliverToBoxAdapter(
-          child: Padding(
-            padding: EdgeInsets.symmetric(horizontal: AppSpace.screen),
-            child: GlassShimmer(
-              child: SkeletonBox(
-                width: double.infinity,
-                height: 96,
-                radius: 22,
-              ),
-            ),
-          ),
-        )
-      else if (categories.hasError)
-        SliverToBoxAdapter(
-          child: ErrorView(
-            message: 'Categories unavailable.',
-            onRetry: () => ref.invalidate(categoriesProvider),
-          ),
-        )
-      else
-        SliverPadding(
-          padding: const EdgeInsets.symmetric(horizontal: AppSpace.screen),
-          sliver: SliverGrid.count(
-            crossAxisCount: 2,
-            mainAxisSpacing: AppSpace.cardGap,
-            crossAxisSpacing: AppSpace.cardGap,
-            childAspectRatio: 1.6,
-            children: [
-              for (final category in categories.value ?? const <Category>[])
-                _CategoryTile(
-                  category: category,
-                  active: selected == category.id,
-                  onTap: () =>
-                      _select(selected == category.id ? null : category.id),
-                ),
-            ],
-          ),
-        ),
-      const SliverToBoxAdapter(child: SizedBox(height: AppSpace.xl)),
-      if (selected != null) ..._selectedFeed(feed),
+      ..._latestFeed(feed),
     ];
   }
 
-  void _select(String? categoryId) {
-    ref.read(exploreCategoryProvider.notifier).state = categoryId;
-  }
-
-  List<Widget> _selectedFeed(AsyncValue<FeedState> feed) {
+  List<Widget> _latestFeed(AsyncValue<FeedState> feed) {
     if (feed.isLoading && !feed.hasValue) {
       return [
         SliverPadding(
@@ -264,7 +203,7 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
       return [
         SliverToBoxAdapter(
           child: ErrorView(
-            message: 'Could not load this category.',
+            message: 'Could not load prompts.',
             onRetry: () => ref.read(categoryFeedProvider.notifier).refresh(),
           ),
         ),
@@ -275,8 +214,9 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
       return const [
         SliverToBoxAdapter(
           child: EmptyState(
-            icon: Icons.category_outlined,
-            title: 'No prompts in this category yet',
+            icon: Icons.auto_awesome_outlined,
+            title: 'No prompts yet',
+            message: 'Be the first to publish one.',
           ),
         ),
       ];
@@ -286,7 +226,6 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
         padding: const EdgeInsets.symmetric(horizontal: AppSpace.screen),
         sliver: SliverList.list(
           children: [
-            SectionLabel('Prompts in this category'),
             for (var i = 0; i < items.length; i++) ...[
               if (i > 0) const SizedBox(height: AppSpace.cardGap),
               PromptCard(
@@ -298,50 +237,5 @@ class _ExploreScreenState extends ConsumerState<ExploreScreen> {
         ),
       ),
     ];
-  }
-}
-
-class _CategoryTile extends StatelessWidget {
-  const _CategoryTile({
-    required this.category,
-    required this.active,
-    required this.onTap,
-  });
-
-  final Category category;
-  final bool active;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = GlassTokens.of(context);
-    return SpringPress(
-      behavior: HitTestBehavior.opaque,
-      onTap: onTap,
-      child: GlassContainer(
-        padding: const EdgeInsets.all(AppSpace.md),
-        fillColor: active ? const Color(0xE6FFFFFF) : null,
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Text(category.icon, style: const TextStyle(fontSize: 20)),
-            const SizedBox(height: AppSpace.xs),
-            Text(
-              category.name,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: t.onGlass(AppType.subtitle()),
-            ),
-            Text(
-              category.promptCount > 0
-                  ? '${category.promptCount} prompts'
-                  : 'Browse',
-              style: t.onGlassMuted(AppType.micro()),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 }

@@ -13,9 +13,6 @@ import '../../../core/routing/glass_route.dart';
 import '../../../core/widgets/shimmer.dart';
 import '../../../core/widgets/spring_press.dart';
 import '../../../core/widgets/stagger.dart';
-import '../../categories/domain/category.dart';
-import '../../categories/presentation/category_providers.dart';
-import '../../categories/presentation/category_screen.dart';
 import '../../notifications/presentation/notifications_screen.dart';
 import '../../prompts/domain/prompt.dart';
 import '../../prompts/presentation/feed_controller.dart';
@@ -36,6 +33,12 @@ class HomeScreen extends ConsumerStatefulWidget {
 class _HomeScreenState extends ConsumerState<HomeScreen> {
   final _scroll = ScrollController();
   bool _firstPaint = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _scroll.addListener(_onScroll);
+  }
 
   @override
   void dispose() {
@@ -64,7 +67,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
     final t = GlassTokens.of(context);
     final feed = ref.watch(homeFeedProvider);
     final sort = ref.watch(feedSortProvider);
-    final categories = ref.watch(categoriesProvider);
     final featured = ref.watch(featuredPromptProvider);
 
     // Stagger only the very first paint of the session (§5).
@@ -76,7 +78,7 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
       child: NotificationListener<ScrollNotification>(
         onNotification: (_) => false,
         child: CustomScrollView(
-          controller: _scroll..addListener(_onScroll),
+          controller: _scroll,
           physics: const AlwaysScrollableScrollPhysics(),
           slivers: [
             // §5: iOS-style refresh control, never a Material indicator.
@@ -135,34 +137,6 @@ class _HomeScreenState extends ConsumerState<HomeScreen> {
                   child: FeaturedCard(
                     prompt: featured.value!,
                     onTap: () => _openPrompt(featured.value!.id),
-                  ),
-                ),
-              ),
-            ],
-            if (categories.value != null && categories.value!.isNotEmpty) ...[
-              const SliverToBoxAdapter(child: SizedBox(height: AppSpace.lg)),
-              SliverToBoxAdapter(
-                child: SizedBox(
-                  height: 74,
-                  child: ListView.separated(
-                    scrollDirection: Axis.horizontal,
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpace.screen,
-                    ),
-                    itemCount: categories.value!.length,
-                    separatorBuilder: (_, _) =>
-                        const SizedBox(width: AppSpace.md),
-                    itemBuilder: (context, index) {
-                      final category = categories.value![index];
-                      return _CategoryChip(
-                        category: category,
-                        onTap: () => Navigator.of(context).push(
-                          GlassPageRoute<void>(
-                            builder: (_) => CategoryScreen(category: category),
-                          ),
-                        ),
-                      );
-                    },
                   ),
                 ),
               ),
@@ -311,36 +285,6 @@ class _SortTab extends StatelessWidget {
           style: AppType.button(
             color: active ? t.textPrimary : t.textSecondary,
           ),
-        ),
-      ),
-    );
-  }
-}
-
-class _CategoryChip extends StatelessWidget {
-  const _CategoryChip({required this.category, required this.onTap});
-
-  final Category category;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final t = GlassTokens.of(context);
-    return SpringPress(
-      onTap: onTap,
-      child: GlassContainer(
-        borderRadius: 1000,
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpace.lg,
-          vertical: 10,
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(category.icon, style: const TextStyle(fontSize: 15)),
-            const SizedBox(width: AppSpace.sm),
-            Text(category.name, style: t.onGlass(AppType.button())),
-          ],
         ),
       ),
     );

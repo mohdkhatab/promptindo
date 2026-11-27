@@ -1,19 +1,14 @@
-import 'dart:ui';
-
 import 'package:flutter/material.dart';
 
 import '../animation/app_curves.dart';
 import '../theme/glass_tokens.dart';
 
-/// THE glass surface. Every card, button, sheet, nav bar and dialog in
-/// PromptIndo is built from this widget — there are no one-off
-/// `BackdropFilter` calls in screen files (UI spec §4).
+/// THE surface primitive for cards, buttons, sheets, nav and dialogs.
 ///
-/// Layer order matches the spec:
-///   1. BackdropFilter (blur, default σ26)
-///   2. Container with the theme's fill + hairline border + radius
-///   3. child content
-/// plus the required floating shadow (black 30%, blur 20, y-offset 8).
+/// Performance note: this deliberately uses a solid fill + hairline border
+/// instead of `BackdropFilter`. Real-time blur on every card was the main
+/// source of scroll/page-transition jank on mid-range Android devices. The
+/// white surface + soft shadow keeps the clean iOS look without GPU cost.
 class GlassContainer extends StatelessWidget {
   const GlassContainer({
     super.key,
@@ -39,8 +34,7 @@ class GlassContainer extends StatelessWidget {
   /// 22px cards by default; pass a large radius for pill shapes.
   final double borderRadius;
 
-  /// Default 26 (spec allows 24–30). Pass a subtler value for list rows or
-  /// sheet surfaces that must sit *behind* the primary glass element.
+  /// Kept for API compatibility; blur is intentionally not used.
   final double blurSigma;
 
   final EdgeInsetsGeometry? padding;
@@ -102,24 +96,17 @@ class GlassContainer extends StatelessWidget {
       child: child,
     );
 
-    Widget result = ClipRRect(
-      borderRadius: radius,
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: blurSigma, sigmaY: blurSigma),
-        child: panel,
-      ),
-    );
+    Widget result = panel;
 
     if (showShadow) {
-      // The glass should look like it floats slightly above the background.
       result = DecoratedBox(
         decoration: BoxDecoration(
           borderRadius: radius,
           boxShadow: [
             BoxShadow(
               color: t.shadowColor,
-              blurRadius: 20,
-              offset: const Offset(0, 8),
+              blurRadius: 14,
+              offset: const Offset(0, 5),
             ),
           ],
         ),

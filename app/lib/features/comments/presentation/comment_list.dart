@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -19,15 +21,40 @@ import 'comment_likes_provider.dart';
 
 /// Live comment list for one prompt (oldest first) — shared by the details
 /// screen and the comments sheet so both render identically.
-class CommentList extends ConsumerWidget {
+class CommentList extends ConsumerStatefulWidget {
   const CommentList({super.key, required this.promptId});
 
   final String promptId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CommentList> createState() => _CommentListState();
+}
+
+class _CommentListState extends ConsumerState<CommentList> {
+  late Stream<List<Comment>> _stream;
+
+  @override
+  void initState() {
+    super.initState();
+    _stream = ref
+        .read(commentRepositoryProvider)
+        .watchComments(widget.promptId);
+  }
+
+  @override
+  void didUpdateWidget(covariant CommentList oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.promptId != widget.promptId) {
+      _stream = ref
+          .read(commentRepositoryProvider)
+          .watchComments(widget.promptId);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return StreamBuilder<List<Comment>>(
-      stream: ref.watch(commentRepositoryProvider).watchComments(promptId),
+      stream: _stream,
       builder: (context, snapshot) {
         if (snapshot.hasError) {
           return ErrorView(message: 'Comments are unavailable right now.');

@@ -50,17 +50,11 @@ class PromptCard extends ConsumerWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Expanded(
-                        child: Hero(
-                          tag: AppMotion.titleHero(prompt.id),
-                          child: Material(
-                            type: MaterialType.transparency,
-                            child: Text(
-                              prompt.title,
-                              maxLines: 2,
-                              overflow: TextOverflow.ellipsis,
-                              style: t.onGlass(AppType.subtitle()),
-                            ),
-                          ),
+                        child: Text(
+                          prompt.title,
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
+                          style: t.onGlass(AppType.subtitle()),
                         ),
                       ),
                       if (prompt.isFeatured) ...[
@@ -170,18 +164,17 @@ class _Thumb extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Hero(
-      tag: AppMotion.thumbHero(prompt.id),
-      child: ClipRRect(
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
-        child: SizedBox(
-          width: double.infinity,
-          height: 168,
-          child: CachedNetworkImage(
-            imageUrl: prompt.thumbnailUrl,
-            fit: BoxFit.cover,
-            errorWidget: (_, _, _) => const SizedBox.expand(),
-          ),
+    return ClipRRect(
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(22)),
+      child: SizedBox(
+        width: double.infinity,
+        height: 168,
+        child: CachedNetworkImage(
+          imageUrl: prompt.thumbnailUrl,
+          fit: BoxFit.cover,
+          memCacheWidth: 720,
+          fadeInDuration: const Duration(milliseconds: 150),
+          errorWidget: (_, _, _) => const SizedBox.expand(),
         ),
       ),
     );

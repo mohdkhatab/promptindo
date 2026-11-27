@@ -85,18 +85,18 @@ class GlassTokens {
     }
 
     return const GlassTokens(
-      fill: Color(0x8CFFFFFF), // white 55%
-      borderStrong: Color(0xB3FFFFFF), // white 70%
-      borderFaint: Color(0x59FFFFFF), // white 35% (faded bottom edge)
-      textPrimary: Color(0xFF000000),
-      textSecondary: Color(0x8C000000),
-      placeholder: Color(0x66000000),
+      fill: Color(0xFFFFFFFF),
+      borderStrong: Color(0xFFE7E7EC),
+      borderFaint: Color(0xFFF0F0F3),
+      textPrimary: Color(0xFF111114),
+      textSecondary: Color(0xFF6E6E73),
+      placeholder: Color(0xFF9A9AA0),
       onBackground: AppColors.lightLabel,
       onBackgroundSecondary: AppColors.lightLabelSecondary,
       backgroundCenter: AppColors.lightBackground,
       backgroundEdge: AppColors.lightBackground,
-      sheetFill: Color(0xE6FFFFFF), // white 90%, flatter
-      shadowColor: Color(0x33000000),
+      sheetFill: Color(0xFFFFFFFF),
+      shadowColor: Color(0x14000000),
     );
   }
 

@@ -55,7 +55,7 @@ class GlassBottomNav extends StatelessWidget {
                   height: tabWidth * 0.62,
                   child: DecoratedBox(
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.45),
+                      color: const Color(0xFF6D5DF6).withValues(alpha: 0.12),
                       borderRadius: BorderRadius.circular(1000),
                     ),
                   ),

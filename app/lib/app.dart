@@ -108,8 +108,8 @@ class _PromptIndoAppState extends ConsumerState<PromptIndoApp> {
       darkTheme: buildAppTheme(Brightness.dark),
       themeMode: themeMode,
       // §7: theme toggle cross-fades background + glass over 300ms.
-      themeAnimationDuration: const Duration(milliseconds: 300),
-      themeAnimationCurve: Curves.easeInOut,
+      themeAnimationDuration: const Duration(milliseconds: 200),
+      themeAnimationCurve: Curves.easeOutCubic,
       // The background paints behind every route (including sheets/dialogs).
       builder: (context, child) => Stack(
         fit: StackFit.expand,
