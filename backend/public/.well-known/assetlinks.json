@@ -1,11 +1,13 @@
 [
   {
-    "relation": ["delegate_permission/common.handle_all_urls"],
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
     "target": {
       "namespace": "android_app",
       "package_name": "promptindo.app",
       "sha256_cert_fingerprints": [
-        "REPLACE_WITH_CI_RELEASE_SHA256"
+        "C4:4C:68:B9:AA:9C:C3:BE:4B:0F:13:2F:40:82:8F:FB:C0:F7:4D:42:83:39:FF:96:B6:AF:0A:C1:57:81:82:00"
       ]
     }
   }
