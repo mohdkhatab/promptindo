@@ -14,8 +14,7 @@ functions/lib/
 functions/.runtimeconfig.json
 
 # Env files (never commit real secrets)
-.env
-.env*.local
+.env*
 !.env.example
 app/env/*.json
 !app/env/*.example.json
