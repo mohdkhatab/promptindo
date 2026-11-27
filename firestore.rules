@@ -1,0 +1,370 @@
+rules_version = '2';
+
+//
+// PromptIndo — Firestore security rules.
+//
+// Design rules these enforce independently of the Flutter client:
+//   * counters (like_count / copy_count / view_count / comment_count /
+//     follower_count / prompt_count / trend_score) are Cloud-Function-only
+//   * notifications are created only by the Admin SDK (Cloud Functions)
+//   * role/status live behind the `role: admin` custom claim (never a
+//     client-writable field) for authorization decisions
+//   * composite doc ids (likes/{uid_promptId} …) are validated so a user can
+//     only ever create/delete their own like/bookmark/follow docs
+//   * non-public prompts are denied at the rules level, not just filtered
+//     out of client queries
+//
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ---------------------------------------------------------------- helpers
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return signedIn()
+        && 'role' in request.auth.token
+        && request.auth.token.role == 'admin';
+    }
+
+    // A prompt a stranger is allowed to read: public AND not moderated.
+    function promptIsPublic(p) {
+      return p.visibility == 'public' && p.status == 'active';
+    }
+
+    // Owner-editable keys on users/{uid}. role/status/counters/created_at are
+    // deliberately absent — those are Cloud-Function-only (Admin SDK bypasses
+    // these rules, so functions still work).
+    function userEditIsLegal(before, after) {
+      return !after.diff(before).affectedKeys().hasAny([
+        'uid',
+        'email',
+        'role',
+        'status',
+        'follower_count',
+        'following_count',
+        'prompt_count',
+        'total_likes_received',
+        'created_at'
+      ]);
+    }
+
+    // Owner-editable keys on prompts/{id}.
+    function promptEditIsLegal(before, after) {
+      return !after.diff(before).affectedKeys().hasAny([
+        'creator_id',
+        'creator_username',
+        'creator_avatar',
+        'status',
+        'like_count',
+        'copy_count',
+        'view_count',
+        'comment_count',
+        'bookmark_count',
+        'is_featured',
+        'trend_score',
+        'remixed_from_id',
+        'created_at'
+      ]);
+    }
+
+    // Owner-editable keys on comments/{id}.
+    function commentEditIsLegal(before, after) {
+      return !after.diff(before).affectedKeys().hasAny([
+        'prompt_id',
+        'parent_id',
+        'author_id',
+        'author_username',
+        'author_avatar',
+        'like_count',
+        'status',
+        'created_at'
+      ]);
+    }
+
+    // --------------------------------------------------------------- users
+    match /users/{userId} {
+      // Public profile fields only — `email` lives in users_private/{uid}
+      // because a single Firestore doc cannot be field-redacted on read.
+      allow get, list: if true;
+
+      // Profile is created either by the onUserCreate Auth trigger (Admin SDK,
+      // bypasses rules) OR by the signed-in user themself as a self-heal when
+      // the trigger is not deployed / has not landed. The client may only create
+      // its OWN doc, as a plain 'user', 'active', with all counters at zero.
+      allow create: if signedIn()
+        && userId == request.auth.uid
+        && request.resource.data.keys().hasOnly([
+          'uid', 'name', 'username', 'username_lower', 'avatar_url', 'bio',
+          'role', 'status', 'follower_count', 'following_count',
+          'prompt_count', 'total_likes_received', 'created_at', 'updated_at'
+        ])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.role == 'user'
+        && request.resource.data.status == 'active'
+        && request.resource.data.follower_count == 0
+        && request.resource.data.following_count == 0
+        && request.resource.data.prompt_count == 0
+        && request.resource.data.total_likes_received == 0
+        && request.resource.data.username is string
+        && request.resource.data.username.matches('^[A-Za-z0-9_]{3,24}$')
+        && request.resource.data.username_lower is string
+        && request.resource.data.username_lower.matches('^[a-z0-9_]{3,24}$')
+        && request.resource.data.name is string
+        && request.resource.data.name.size() <= 60
+        && request.resource.data.bio is string
+        && request.resource.data.bio.size() <= 200
+        && request.resource.data.avatar_url is string;
+      allow delete: if false;
+
+      allow update: if signedIn()
+        && userId == request.auth.uid
+        && userEditIsLegal(resource.data, request.resource.data)
+        && request.resource.data.username is string
+        && request.resource.data.username.matches('^[A-Za-z0-9_]{3,24}$')
+        && request.resource.data.username_lower is string
+        // The rules language has no toLowerCase() — we validate the *shape*
+        // of username_lower here; exact equality with username is a
+        // client-side best-effort invariant (README §13).
+        && request.resource.data.username_lower.matches('^[a-z0-9_]{3,24}$')
+        && request.resource.data.name is string
+        && request.resource.data.name.size() <= 60
+        && request.resource.data.bio is string
+        && request.resource.data.bio.size() <= 200;
+    }
+
+    // Private fields for the same user (email today; more later).
+    match /users_private/{userId} {
+      allow read: if isAdmin() || (signedIn() && userId == request.auth.uid);
+      allow create, update: if isAdmin() || (signedIn() && userId == request.auth.uid);
+      allow delete: if isAdmin();
+    }
+
+    // FCM device tokens — one doc per device, owned by the account.
+    match /users/{userId}/fcm_tokens/{tokenId} {
+      allow read: if signedIn() && userId == request.auth.uid;
+      allow create, update, delete: if signedIn() && userId == request.auth.uid;
+    }
+
+    // ------------------------------------------------------------- prompts
+    match /prompts/{promptId} {
+      allow get, list: if isAdmin()
+        || promptIsPublic(resource.data)
+        // Owner reads their own prompt only while it is active — a
+        // suspended prompt disappears for everyone but admins.
+        || (signedIn()
+            && resource.data.creator_id == request.auth.uid
+            && resource.data.status == 'active');
+
+      allow create: if signedIn()
+        && request.resource.data.creator_id == request.auth.uid
+        && request.resource.data.status == 'active'
+        && request.resource.data.visibility in ['public', 'unlisted', 'private']
+        // counters/featured/trend always start at their zero-values
+        && request.resource.data.like_count == 0
+        && request.resource.data.copy_count == 0
+        && request.resource.data.view_count == 0
+        && request.resource.data.comment_count == 0
+        && request.resource.data.bookmark_count == 0
+        && request.resource.data.is_featured == false
+        && request.resource.data.trend_score == 0
+        && request.resource.data.title is string
+        && request.resource.data.title.size() > 0
+        && request.resource.data.title.size() <= 120
+        && request.resource.data.description is string
+        && request.resource.data.description.size() <= 1000
+        && request.resource.data.prompt_content is string
+        && request.resource.data.prompt_content.size() > 0
+        && request.resource.data.prompt_content.size() <= 20000
+        && request.resource.data.tags is list
+        && request.resource.data.tags.size() <= 12
+        // denormalised author fields must match the real profile
+        && request.resource.data.creator_username
+             == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.username;
+
+      allow update: if isAdmin()
+        || (signedIn()
+            && resource.data.creator_id == request.auth.uid
+            && promptEditIsLegal(resource.data, request.resource.data)
+            && request.resource.data.title is string
+            && request.resource.data.title.size() > 0
+            && request.resource.data.title.size() <= 120
+            && request.resource.data.prompt_content is string
+            && request.resource.data.prompt_content.size() > 0
+            && request.resource.data.prompt_content.size() <= 20000
+            && request.resource.data.tags is list
+            && request.resource.data.tags.size() <= 12);
+
+      allow delete: if isAdmin()
+        || (signedIn() && resource.data.creator_id == request.auth.uid);
+    }
+
+    // ---------------------------------------------------- likes (composite id)
+    // likes/{uid}_{promptId} — existence of the doc IS the "liked" state, and
+    // the id is validated so nobody can forge someone else's like doc.
+    match /likes/{likeId} {
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['user_id', 'prompt_id', 'created_at'])
+        && request.resource.data.user_id == request.auth.uid
+        && request.resource.data.prompt_id is string
+        && likeId == request.auth.uid + '_' + request.resource.data.prompt_id;
+
+      allow delete: if signedIn()
+        && resource.data.user_id == request.auth.uid
+        && likeId == request.auth.uid + '_' + resource.data.prompt_id;
+
+      allow update: if false;
+
+      // "which of my likes exist" for feed/Profile hydration.
+      allow get, list: if signedIn() && resource.data.user_id == request.auth.uid;
+    }
+
+    // ----------------------------------------------- bookmarks (composite id)
+    match /bookmarks/{bookmarkId} {
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['user_id', 'prompt_id', 'created_at'])
+        && request.resource.data.user_id == request.auth.uid
+        && request.resource.data.prompt_id is string
+        && bookmarkId == request.auth.uid + '_' + request.resource.data.prompt_id;
+
+      allow delete: if signedIn()
+        && resource.data.user_id == request.auth.uid
+        && bookmarkId == request.auth.uid + '_' + resource.data.prompt_id;
+
+      allow update: if false;
+
+      allow get, list: if signedIn() && resource.data.user_id == request.auth.uid;
+    }
+
+    // ---------------------------------------------------- follows (composite id)
+    match /follows/{followId} {
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['follower_id', 'followed_id', 'created_at'])
+        && request.resource.data.follower_id == request.auth.uid
+        && request.resource.data.followed_id is string
+        && request.resource.data.followed_id != request.auth.uid
+        && followId == request.auth.uid + '_' + request.resource.data.followed_id;
+
+      allow delete: if signedIn()
+        && resource.data.follower_id == request.auth.uid
+        && followId == request.auth.uid + '_' + resource.data.followed_id;
+
+      allow update: if false;
+
+      // Following-list (follower_id == me) and followers-list
+      // (followed_id == me) are both provable from their query filters.
+      allow get, list: if signedIn()
+        && (resource.data.follower_id == request.auth.uid
+            || resource.data.followed_id == request.auth.uid);
+    }
+
+    // ------------------------------------------------------------- comments
+    match /comments/{commentId} {
+      // Moderated comments are not readable by anyone but the Admin SDK.
+      allow get, list: if resource.data.status == 'active';
+
+      allow create: if signedIn()
+        && request.resource.data.author_id == request.auth.uid
+        && request.resource.data.status == 'active'
+        && request.resource.data.like_count == 0
+        && request.resource.data.prompt_id is string
+        && request.resource.data.content is string
+        && request.resource.data.content.size() > 0
+        && request.resource.data.content.size() <= 2000
+        && (request.resource.data.parent_id is string
+            || request.resource.data.parent_id == null)
+        && request.resource.data.author_username
+             == get(/databases/$(database)/documents/users/$(request.auth.uid)).data.username;
+
+      allow update: if signedIn()
+        && resource.data.author_id == request.auth.uid
+        && commentEditIsLegal(resource.data, request.resource.data)
+        && request.resource.data.content is string
+        && request.resource.data.content.size() > 0
+        && request.resource.data.content.size() <= 2000;
+
+      // Author, the prompt owner (rules-level lookup of the parent prompt),
+      // or an admin.
+      allow delete: if isAdmin()
+        || (signedIn() && resource.data.author_id == request.auth.uid)
+        || (signedIn()
+            && get(/databases/$(database)/documents/prompts/$(resource.data.prompt_id)).data.creator_id
+               == request.auth.uid);
+    }
+
+    // -------------------------------------------- comment_likes (composite id)
+    match /comment_likes/{likeId} {
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['user_id', 'comment_id', 'created_at'])
+        && request.resource.data.user_id == request.auth.uid
+        && request.resource.data.comment_id is string
+        && likeId == request.auth.uid + '_' + request.resource.data.comment_id;
+
+      allow delete: if signedIn()
+        && resource.data.user_id == request.auth.uid
+        && likeId == request.auth.uid + '_' + resource.data.comment_id;
+
+      allow update: if false;
+
+      allow get, list: if signedIn() && resource.data.user_id == request.auth.uid;
+    }
+
+    // -------------------------------------------------------- notifications
+    match /notifications/{notificationId} {
+      // Creation is Cloud-Function-only (Admin SDK).
+      allow create: if false;
+
+      allow get, list: if signedIn() && resource.data.recipient_id == request.auth.uid;
+
+      // Recipient may flip is_read (mark read / mark all read) and nothing else.
+      allow update: if signedIn()
+        && resource.data.recipient_id == request.auth.uid
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['is_read']);
+
+      allow delete: if signedIn() && resource.data.recipient_id == request.auth.uid;
+    }
+
+    // ----------------------------------------------------------- categories
+    match /categories/{categoryId} {
+      allow get, list: if true;
+      allow create, update, delete: if isAdmin();
+    }
+
+    // ------------------------------------------------------------- reports
+    match /reports/{reportId} {
+      // Duplicate-report rule (one per target per hour) is enforced in the
+      // onReportCreate trigger — a client-side check is not trustworthy.
+      allow create: if signedIn()
+        && request.resource.data.reporter_id == request.auth.uid
+        && request.resource.data.status == 'pending'
+        && request.resource.data.target_type in ['prompt', 'comment', 'user']
+        && request.resource.data.target_id is string
+        && request.resource.data.reason is string
+        && request.resource.data.reason.size() > 0
+        && request.resource.data.reason.size() <= 200
+        && request.resource.data.details is string
+        && request.resource.data.details.size() <= 1000;
+
+      allow get, list, update, delete: if isAdmin();
+    }
+
+    // ------------------------------------------------------- admin_actions
+    match /admin_actions/{actionId} {
+      allow read: if isAdmin();
+      allow write: if false; // Admin SDK only (audited callables)
+    }
+
+    // --------------------------------------------------------------- views
+    // View-dedupe docs. Client never reads or writes them; recordView()
+    // (callable) owns the collection and a scheduled function cleans it up.
+    match /views/{viewId} {
+      allow read, write: if false;
+    }
+
+    // ------------------------------------------------- deny everything else
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

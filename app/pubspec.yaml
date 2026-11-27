@@ -1,0 +1,69 @@
+name: promptindo
+description: "PromptIndo — a social AI-prompt sharing platform (discover, copy, save, like, remix, comment, follow, publish prompts) built on Firebase."
+publish_to: "none"
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.13.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # --- Firebase ---------------------------------------------------------
+  firebase_core: ^4.15.0
+  firebase_auth: ^6.7.0
+  cloud_firestore: ^6.10.0
+  firebase_storage: ^13.6.0
+  cloud_functions: ^6.5.0
+  firebase_messaging: ^16.7.0
+  firebase_app_check: ^0.4.8
+
+  # --- State management -------------------------------------------------
+  flutter_riverpod: ^3.4.3
+
+  # --- Auth providers ---------------------------------------------------
+  google_sign_in: ^7.2.0
+
+  # --- Deep links / local prefs ----------------------------------------
+  app_links: ^7.2.1
+  shared_preferences: ^2.5.5
+
+  # --- Media, upload & sharing -----------------------------------------
+  image_picker: ^1.2.3
+  flutter_image_compress: ^2.5.1
+  share_plus: ^13.3.0
+  cached_network_image: ^4.0.2
+
+  # --- Utilities --------------------------------------------------------
+  intl: ^0.20.3
+  uuid: ^4.6.0
+  cupertino_icons: ^1.0.9
+  path: ^1.9.0
+  path_provider: ^2.1.5
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/Inter-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/Inter-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/Inter-SemiBold.ttf
+          weight: 600
+        - asset: assets/fonts/Inter-Bold.ttf
+          weight: 700
+    - family: RobotoMono
+      fonts:
+        - asset: assets/fonts/RobotoMono-Medium.ttf
+          weight: 500

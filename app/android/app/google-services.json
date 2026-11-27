@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "66910648137",
+    "project_id": "prompindo",
+    "storage_bucket": "prompindo.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:66910648137:android:97f0dd1bc066a48bb18c98",
+        "android_client_info": {
+          "package_name": "Com.promptindo.ai"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyC0ONxrttUUqrjbveJA6NygSuaZECa-63Q"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

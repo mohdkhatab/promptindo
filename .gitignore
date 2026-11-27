@@ -1,0 +1,30 @@
+# Firebase
+.firebase/
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+pubsub-debug.log
+storage-debug.log
+*.local
+
+# Node
+node_modules/
+lib/
+*.tsbuildinfo
+functions/.runtimeconfig.json
+
+# Flutter / Dart
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+*.iml
+.idea/
+
+# Platform generated secrets (never commit real ones)
+service-account*.json
+**/google-services.json.secret
+
+# OS
+.DS_Store

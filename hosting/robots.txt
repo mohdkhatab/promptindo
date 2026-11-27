@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+
+# Deep-link verification files must stay cacheable + publicly readable.
+User-agent: *
+Disallow: /.well-known/
