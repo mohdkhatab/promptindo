@@ -63,6 +63,31 @@ export function isSafeAppwriteFileId(fileId: string): boolean {
   return /^[A-Za-z0-9][A-Za-z0-9._-]{0,35}$/.test(fileId);
 }
 
+/**
+ * Deletes the Appwrite object referenced by `appwrite:<fileId>`.
+ * Returns false for legacy Supabase paths. Missing files are treated as
+ * already deleted so retries/triggers stay idempotent.
+ */
+export async function deleteAppwriteRef(ref: string): Promise<boolean> {
+  if (!ref.startsWith("appwrite:")) return false;
+  const fileId = ref.slice("appwrite:".length);
+  if (!isSafeAppwriteFileId(fileId)) {
+    throw new Error("Invalid Appwrite file reference.");
+  }
+  try {
+    const config = getAppwriteConfig();
+    await getAppwriteStorage().deleteFile(config.bucketId, fileId);
+  } catch (err) {
+    const code = String((err as { code?: number | string }).code ?? "");
+    const message = String(
+      (err as { message?: string }).message ?? "",
+    ).toLowerCase();
+    if (code === "404" || message.includes("not found")) return false;
+    throw err;
+  }
+  return true;
+}
+
 export function resetAppwriteForTests(): void {
   cachedStorage = null;
 }

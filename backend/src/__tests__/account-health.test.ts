@@ -16,11 +16,24 @@ vi.mock("@/lib/supabase-admin", () => ({
         deleteUser: mockDeleteUser,
       },
     },
-    from: () => ({
-      select: () => ({
-        limit: mockHealthLimit,
-      }),
-    }),
+    from: (table: string) => {
+      if (table === "prompts") {
+        return {
+          select: () => ({
+            eq: () => ({
+              like: () => ({
+                range: async () => ({ data: [], error: null }),
+              }),
+            }),
+          }),
+        };
+      }
+      return {
+        select: () => ({
+          limit: mockHealthLimit,
+        }),
+      };
+    },
     storage: {
       from: (bucket: string) => ({
         list: (prefix: string, opts: { limit: number; offset: number }) =>

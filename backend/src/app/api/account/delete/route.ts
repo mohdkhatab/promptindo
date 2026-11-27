@@ -1,3 +1,4 @@
+import { deleteAppwriteRef } from "@/lib/appwrite";
 import { requireUser } from "@/lib/auth";
 import { ApiError, handleRoute, okResponse } from "@/lib/http";
 import { getSupabaseAdmin } from "@/lib/supabase-admin";
@@ -86,6 +87,43 @@ function isAuthUserNotFound(err: {
 export async function POST(req: Request) {
   return handleRoute("/api/account/delete", req, async (ctx) => {
     const { uid } = await requireUser(req, ctx);
+
+    // Delete Appwrite post images before the auth row cascades. The DB
+    // trigger is best-effort and depends on Vault; this guarantees cleanup.
+    const supabase = getSupabaseAdmin();
+    let from = 0;
+    for (;;) {
+      const { data: mediaRows, error: mediaError } = await supabase
+        .from("prompts")
+        .select("thumbnail_path")
+        .eq("creator_id", uid)
+        .like("thumbnail_path", "appwrite:%")
+        .range(from, from + 499);
+
+      if (mediaError) {
+        throw new ApiError(
+          500,
+          "media_delete_failed",
+          "Failed to list your post images.",
+        );
+      }
+      if (!mediaRows || mediaRows.length === 0) break;
+
+      for (const row of mediaRows) {
+        try {
+          await deleteAppwriteRef(String(row.thumbnail_path ?? ""));
+        } catch {
+          throw new ApiError(
+            500,
+            "media_delete_failed",
+            "Failed to remove a post image. Try again.",
+          );
+        }
+      }
+
+      if (mediaRows.length < 500) break;
+      from += 500;
+    }
 
     await emptyUserFolder("avatars", uid);
     await emptyUserFolder("thumbnails", uid);

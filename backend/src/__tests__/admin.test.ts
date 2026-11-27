@@ -99,6 +99,14 @@ vi.mock("@/lib/supabase-admin", () => ({
 
       if (table === "prompts") {
         return {
+          select: () => ({
+            eq: () => ({
+              maybeSingle: async () => ({
+                data: { id: TARGET_ID, thumbnail_path: "" },
+                error: null,
+              }),
+            }),
+          }),
           update: (payload: Record<string, unknown>) => {
             capturedUpdates.push({ table, payload });
             return {
