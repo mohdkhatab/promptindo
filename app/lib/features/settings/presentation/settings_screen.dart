@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/providers/backend_providers.dart';
-import '../../../core/providers/theme_controller.dart';
 import '../../../core/routing/glass_route.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/glass_tokens.dart';
@@ -168,7 +167,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
   @override
   Widget build(BuildContext context) {
     final t = GlassTokens.of(context);
-    final themeMode = ref.watch(themeControllerProvider);
 
     return Scaffold(
       backgroundColor: Colors.transparent,
@@ -182,32 +180,6 @@ class _SettingsScreenState extends ConsumerState<SettingsScreen> {
               padding: const EdgeInsets.all(AppSpace.md),
               child: Column(
                 children: [
-                  _Row(
-                    icon: Icons.dark_mode_outlined,
-                    label: 'Appearance',
-                    trailing: SegmentedButton<ThemeMode>(
-                      segments: const [
-                        ButtonSegment(
-                          value: ThemeMode.light,
-                          label: Text('Light'),
-                        ),
-                        ButtonSegment(
-                          value: ThemeMode.system,
-                          label: Text('Auto'),
-                        ),
-                        ButtonSegment(
-                          value: ThemeMode.dark,
-                          label: Text('Dark'),
-                        ),
-                      ],
-                      selected: {themeMode},
-                      showSelectedIcon: false,
-                      onSelectionChanged: (selection) => ref
-                          .read(themeControllerProvider.notifier)
-                          .setMode(selection.first),
-                    ),
-                    onTap: null,
-                  ),
                   _Row(
                     icon: Icons.lock_outline_rounded,
                     label: 'Change password',

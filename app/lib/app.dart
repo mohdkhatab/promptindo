@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'core/providers/backend_providers.dart';
-import 'core/providers/theme_controller.dart';
 import 'core/routing/glass_route.dart';
 import 'core/services/deep_links.dart';
 import 'core/services/fcm.dart';
@@ -98,15 +97,13 @@ class _PromptIndoAppState extends ConsumerState<PromptIndoApp> {
 
   @override
   Widget build(BuildContext context) {
-    final themeMode = ref.watch(themeControllerProvider);
-
     return MaterialApp(
       title: 'PromptIndo',
       debugShowCheckedModeBanner: false,
       navigatorKey: ref.read(rootNavigatorKeyProvider),
       theme: buildAppTheme(Brightness.light),
       darkTheme: buildAppTheme(Brightness.dark),
-      themeMode: themeMode,
+      themeMode: ThemeMode.light,
       // §7: theme toggle cross-fades background + glass over 300ms.
       themeAnimationDuration: const Duration(milliseconds: 200),
       themeAnimationCurve: Curves.easeOutCubic,

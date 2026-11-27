@@ -46,8 +46,9 @@ class GlassButton extends StatelessWidget {
 
     switch (variant) {
       case GlassButtonVariant.primary:
-        // White glass pill in BOTH themes — this is what "white-glass" means.
-        fill = const Color(0xE6FFFFFF);
+        // High-contrast solid ink pill on the white canvas.
+        fill = const Color(0xFF111114);
+        labelColor = textColor ?? const Color(0xFFFFFFFF);
       case GlassButtonVariant.secondary:
         fill = Colors.transparent;
         border = borderColor ?? const Color(0xFF000000);
@@ -62,7 +63,7 @@ class GlassButton extends StatelessWidget {
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
         if (loading)
-          const CupertinoActivityIndicator(radius: 9, color: Color(0xFF000000))
+          CupertinoActivityIndicator(radius: 9, color: labelColor)
         else if (icon != null)
           Icon(icon, size: 18, color: labelColor),
         if ((loading || icon != null) && label.isNotEmpty)

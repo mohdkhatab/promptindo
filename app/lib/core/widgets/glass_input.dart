@@ -141,7 +141,7 @@ class _GlassInputState extends State<GlassInput> {
             boxShadow: focused
                 ? [
                     BoxShadow(
-                      color: Colors.white.withValues(alpha: 0.3),
+                      color: const Color(0xFF6D5DF6).withValues(alpha: 0.18),
                       blurRadius: 12,
                     ),
                   ]
@@ -154,7 +154,7 @@ class _GlassInputState extends State<GlassInput> {
               vertical: singleLine ? 14 : AppSpace.md,
             ),
             borderStrongColor: focused
-                ? t.borderStrong.withValues(alpha: 1)
+                ? const Color(0xFF6D5DF6)
                 : t.borderStrong,
             borderWidth: focused ? 1.25 : 1,
             showShadow: false,
