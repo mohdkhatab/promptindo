@@ -6,14 +6,10 @@ on:
     paths:
       - "app/**"
       - "scripts/generate_app_icons.py"
-      - "scripts/generate_brand_assets.py"
-      - ".github/workflows/app.yml"
   pull_request:
     paths:
       - "app/**"
       - "scripts/generate_app_icons.py"
-      - "scripts/generate_brand_assets.py"
-      - ".github/workflows/app.yml"
 
 concurrency:
   group: android-ci-${{ github.ref }}

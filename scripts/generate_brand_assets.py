@@ -83,6 +83,16 @@ def icon_png(size: int, path: Path, maskable: bool = False) -> None:
     img.save(path, optimize=True)
 
 
+def app_mark(size: int) -> Image.Image:
+    """The provided app artwork, with its white surround removed."""
+    img = Image.open(ROOT / "scripts" / "assets" / "app-icon.webp").convert("RGB")
+    bg = img.getpixel((120, 120))
+    w, h = img.size
+    for corner in ((0, 0), (w - 1, 0), (0, h - 1), (w - 1, h - 1)):
+        ImageDraw.floodfill(img, corner, bg, thresh=70)
+    return rounded(img.resize((size, size), Image.LANCZOS), int(size * 0.22))
+
+
 def og_image(path: Path) -> None:
     W, H = 1200, 630
     img = Image.new("RGB", (W, H), (8, 8, 10))
@@ -104,7 +114,7 @@ def og_image(path: Path) -> None:
         draw.line((0, y, W, y), fill=(255, 255, 255, 6), width=1)
 
     # Logo + wordmark.
-    logo = mark(88, radius_ratio=0.24)
+    logo = app_mark(88)
     img.paste(logo, (84, 70), logo)
     draw.text((188, 80), "PromptIndo", font=font("Inter-Bold.ttf", 44), fill=WHITE)
 
