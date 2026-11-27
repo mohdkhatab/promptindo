@@ -1,26 +1,36 @@
 {
   "project_info": {
-    "project_number": "66910648137",
-    "project_id": "prompindo",
-    "storage_bucket": "prompindo.firebasestorage.app"
+    "project_number": "132450727224",
+    "project_id": "donghuamax-6e38d",
+    "storage_bucket": "donghuamax-6e38d.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:66910648137:android:97f0dd1bc066a48bb18c98",
+        "mobilesdk_app_id": "1:132450727224:android:1758c4a2a656bd6accfdcd",
         "android_client_info": {
-          "package_name": "Com.promptindo.ai"
+          "package_name": "promptindo.app"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "132450727224-h5497qleumse5s1p2rdqe80b3u7olks7.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
-          "current_key": "AIzaSyC0ONxrttUUqrjbveJA6NygSuaZECa-63Q"
+          "current_key": "AIzaSyC6qaPDeOQobTYRfvUmSwn8o6rNfLY3ow0"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "132450727224-h5497qleumse5s1p2rdqe80b3u7olks7.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

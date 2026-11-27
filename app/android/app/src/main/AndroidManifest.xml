@@ -5,7 +5,8 @@
     <application
         android:label="PromptIndo"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:roundIcon="@mipmap/ic_launcher_round">
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -33,7 +34,26 @@
                 <action android:name="android.intent.action.VIEW"/>
                 <category android:name="android.intent.category.DEFAULT"/>
                 <category android:name="android.intent.category.BROWSABLE"/>
-                <data android:scheme="https" android:host="promptindo.vercel.app"/>
+                <data android:scheme="https" android:host="www.promptindo.app" android:pathPrefix="/p"/>
+                <data android:scheme="https" android:host="promptindo.app" android:pathPrefix="/p"/>
+            </intent-filter>
+            <!-- Password-recovery deep links. Supabase may redirect to the
+                 canonical site or to the Vercel project host depending on the
+                 Auth URL Configuration. -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="https" android:host="www.promptindo.app" android:pathPrefix="/reset-password"/>
+                <data android:scheme="https" android:host="promptindo.app" android:pathPrefix="/reset-password"/>
+                <data android:scheme="https" android:host="promptindo-rkkhatab872-4491s-projects.vercel.app"/>
+            </intent-filter>
+            <!-- Custom scheme fallback used by the in-app reset flow. -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW"/>
+                <category android:name="android.intent.category.DEFAULT"/>
+                <category android:name="android.intent.category.BROWSABLE"/>
+                <data android:scheme="promptindo" android:host="reset-password"/>
             </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.

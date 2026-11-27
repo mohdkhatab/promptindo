@@ -26,9 +26,9 @@ android {
     }
 
     defaultConfig {
-        // NOTE: mixed-case to match the package name registered in
-        // google-services.json / the Firebase console exactly.
-        applicationId = "Com.promptindo.ai"
+        // Final production package name — must match google-services.json,
+        // Play Console, and the Android OAuth client.
+        applicationId = "promptindo.app"
         minSdk = flutter.minSdkVersion
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

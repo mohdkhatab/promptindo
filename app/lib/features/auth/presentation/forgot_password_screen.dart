@@ -15,9 +15,11 @@ import '../../../core/widgets/glass_input.dart';
 import '../../../core/widgets/glass_toast.dart';
 import '../../../core/widgets/shake.dart';
 
-/// Two-step password reset:
-/// 1) Enter account email -> sends 6-digit recovery OTP.
-/// 2) Enter the 6-digit code + new password to update credentials.
+/// Password reset step 1: send a Supabase recovery link.
+///
+/// Step 2 happens when the user taps the link: the app receives
+/// `promptindo://reset-password` (or the https fallback), establishes the
+/// recovery session, and shows [ResetPasswordScreen].
 class ForgotPasswordScreen extends ConsumerStatefulWidget {
   const ForgotPasswordScreen({super.key, this.initialEmail});
 
@@ -32,9 +34,6 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   late final TextEditingController _email = TextEditingController(
     text: widget.initialEmail ?? '',
   );
-  final _code = TextEditingController();
-  final _newPassword = TextEditingController();
-  final _confirmPassword = TextEditingController();
 
   bool _busy = false;
   int _failedAttempts = 0;
@@ -46,9 +45,6 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   @override
   void dispose() {
     _email.dispose();
-    _code.dispose();
-    _newPassword.dispose();
-    _confirmPassword.dispose();
     _cooldownTimer?.cancel();
     super.dispose();
   }
@@ -86,75 +82,19 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
       await ref
           .read(authRepositoryProvider)
           .sendPasswordReset(email: _email.text);
-      if (mounted) {
-        setState(() => _sent = true);
-        _startCooldown();
-        GlassToast.show(context, 'Reset code sent');
-      }
-    } catch (_) {
-      if (mounted) {
-        setState(() {
-          _error = 'Could not send the reset code.';
-          _failedAttempts++;
-        });
-      }
-    } finally {
-      if (mounted) setState(() => _busy = false);
-    }
-  }
-
-  Future<void> _resetWithCode() async {
-    FocusScope.of(context).unfocus();
-    final code = _code.text.trim();
-    if (!RegExp(r'^\d{6}$').hasMatch(code)) {
-      setState(() {
-        _error = 'Enter the 6-digit code from your email.';
-        _failedAttempts++;
-      });
-      return;
-    }
-    final problem = passwordProblem(_newPassword.text);
-    if (problem != null) {
-      setState(() {
-        _error = 'Password: $problem.';
-        _failedAttempts++;
-      });
-      return;
-    }
-    if (_newPassword.text != _confirmPassword.text) {
-      setState(() {
-        _error = 'New passwords do not match.';
-        _failedAttempts++;
-      });
-      return;
-    }
-
-    setState(() {
-      _busy = true;
-      _error = null;
-    });
-    try {
-      await ref
-          .read(authRepositoryProvider)
-          .resetPasswordWithCode(
-            email: _email.text,
-            code: code,
-            newPassword: _newPassword.text,
-          );
-      if (mounted) {
-        GlassToast.show(context, 'Password updated');
-        Navigator.of(context).popUntil((route) => route.isFirst);
-      }
+      if (!mounted) return;
+      setState(() => _sent = true);
+      _startCooldown();
+      GlassToast.show(context, 'Reset link sent');
     } catch (error) {
-      if (mounted) {
-        final mapped = SupabaseErrorMapper.map(error);
-        setState(() {
-          _error = mapped.code == 'invalid-otp'
-              ? mapped.message
-              : 'Could not reset password. Check the code and try again.';
-          _failedAttempts++;
-        });
-      }
+      if (!mounted) return;
+      final mapped = SupabaseErrorMapper.map(error);
+      setState(() {
+        _error = mapped.code == 'network'
+            ? 'Network error — check your connection.'
+            : 'Could not send the reset link. Try again.';
+        _failedAttempts++;
+      });
     } finally {
       if (mounted) setState(() => _busy = false);
     }
@@ -179,79 +119,43 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                   const SizedBox(height: AppSpace.md),
                   if (_sent) ...[
                     Text(
-                      'Enter the 6-digit code sent to ${_email.text.trim()} '
-                      'and choose a new password.',
+                      'We sent a reset link to ${_email.text.trim()}. '
+                      'Open it on this device to choose a new password.',
                       style: t.onBackgroundMuted(AppType.body()),
                     ),
                     const SizedBox(height: AppSpace.lg),
-                    ShakeWidget(
-                      trigger: _failedAttempts,
-                      child: GlassContainer(
-                        padding: const EdgeInsets.all(AppSpace.lg),
-                        child: Column(
-                          children: [
-                            GlassInput(
-                              controller: _code,
-                              label: 'RESET CODE',
-                              hint: '123456',
-                              keyboardType: TextInputType.number,
-                              maxLength: 6,
-                              textInputAction: TextInputAction.next,
-                            ),
-                            const SizedBox(height: AppSpace.md),
-                            GlassInput(
-                              controller: _newPassword,
-                              label: 'NEW PASSWORD',
-                              hint: '8+ characters, letter + number',
-                              obscureText: true,
-                              textInputAction: TextInputAction.next,
-                              autofillHints: const [AutofillHints.newPassword],
-                            ),
-                            const SizedBox(height: AppSpace.md),
-                            GlassInput(
-                              controller: _confirmPassword,
-                              label: 'CONFIRM NEW PASSWORD',
-                              hint: 'Repeat new password',
-                              obscureText: true,
-                              textInputAction: TextInputAction.done,
-                              onSubmitted: (_) => _resetWithCode(),
-                            ),
-                            if (_error != null) ...[
-                              const SizedBox(height: AppSpace.md),
-                              Align(
-                                alignment: Alignment.centerLeft,
-                                child: Text(
-                                  _error!,
-                                  style: AppType.caption(
-                                    color: const Color(0xFFFF3B30),
-                                  ),
-                                ),
-                              ),
-                            ],
-                            const SizedBox(height: AppSpace.lg),
-                            GlassButton(
-                              label: 'Reset password',
-                              expand: true,
-                              loading: _busy,
-                              onPressed: _busy ? null : _resetWithCode,
-                            ),
-                          ],
-                        ),
+                    GlassContainer(
+                      padding: const EdgeInsets.all(AppSpace.lg),
+                      child: Column(
+                        children: [
+                          Icon(
+                            Icons.mark_email_read_outlined,
+                            size: 42,
+                            color: t.onBackground,
+                          ),
+                          const SizedBox(height: AppSpace.md),
+                          Text(
+                            'The link opens PromptIndo and finishes the reset '
+                            'inside the app. If it expired, send a new one.',
+                            textAlign: TextAlign.center,
+                            style: t.onBackgroundMuted(AppType.body()),
+                          ),
+                          const SizedBox(height: AppSpace.lg),
+                          GlassButton(
+                            label: _cooldown > 0
+                                ? 'Resend in ${_cooldown}s'
+                                : 'Resend link',
+                            expand: true,
+                            variant: GlassButtonVariant.secondary,
+                            onPressed: (_busy || _cooldown > 0) ? null : _send,
+                          ),
+                        ],
                       ),
-                    ),
-                    const SizedBox(height: AppSpace.md),
-                    GlassButton(
-                      label: _cooldown > 0
-                          ? 'Resend in ${_cooldown}s'
-                          : 'Resend code',
-                      expand: true,
-                      variant: GlassButtonVariant.secondary,
-                      onPressed: (_busy || _cooldown > 0) ? null : _send,
                     ),
                   ] else ...[
                     Text(
                       'Enter the email you registered with and we will send a '
-                      '6-digit reset code.',
+                      'password-reset link.',
                       style: t.onBackgroundMuted(AppType.body()),
                     ),
                     const SizedBox(height: AppSpace.lg),
@@ -267,7 +171,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                     ),
                     const SizedBox(height: AppSpace.lg),
                     GlassButton(
-                      label: 'Send reset code',
+                      label: 'Send reset link',
                       expand: true,
                       loading: _busy,
                       onPressed: _busy ? null : _send,

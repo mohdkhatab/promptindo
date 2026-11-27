@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/errors/supabase_error_mapper.dart';
 import '../../../core/providers/auth_providers.dart';
 import '../../../core/providers/backend_providers.dart';
+import '../../../core/routing/glass_route.dart';
 import '../../../core/services/app_error_reporter.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/theme/glass_tokens.dart';
@@ -13,6 +14,7 @@ import '../../../core/widgets/glass_container.dart';
 import '../../../core/widgets/glass_input.dart';
 import '../../../core/widgets/shake.dart';
 import '../../../core/widgets/empty_state.dart';
+import '../../settings/presentation/terms_screens.dart';
 
 /// Email/password registration. `users/{uid}` is provisioned by the
 /// `onUserCreate` Cloud Function — the client only creates the Auth user.
@@ -175,10 +177,47 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     ),
                   ),
                   const SizedBox(height: AppSpace.lg),
-                  Text(
-                    'By continuing you agree to the Terms and Privacy Policy.',
-                    textAlign: TextAlign.center,
-                    style: t.onBackgroundMuted(AppType.caption()),
+                  Wrap(
+                    alignment: WrapAlignment.center,
+                    crossAxisAlignment: WrapCrossAlignment.center,
+                    children: [
+                      Text(
+                        'By continuing you agree to our',
+                        style: t.onBackgroundMuted(AppType.caption()),
+                      ),
+                      TextButton(
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          foregroundColor: t.onBackground,
+                        ),
+                        onPressed: () => pushGlass<void>(
+                          context: context,
+                          builder: (_) => const TermsScreen(),
+                          name: '/terms',
+                        ),
+                        child: const Text('Terms'),
+                      ),
+                      Text(
+                        'and',
+                        style: t.onBackgroundMuted(AppType.caption()),
+                      ),
+                      TextButton(
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          minimumSize: Size.zero,
+                          tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                          foregroundColor: t.onBackground,
+                        ),
+                        onPressed: () => pushGlass<void>(
+                          context: context,
+                          builder: (_) => const PrivacyScreen(),
+                          name: '/privacy',
+                        ),
+                        child: const Text('Privacy Policy'),
+                      ),
+                    ],
                   ),
                 ],
               ),

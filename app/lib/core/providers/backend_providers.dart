@@ -24,6 +24,7 @@ import '../../features/prompts/data/supabase_prompt_repository.dart';
 import '../../features/prompts/domain/interaction_repository.dart';
 import '../../features/prompts/domain/prompt_repository.dart';
 import '../services/fcm.dart';
+import '../services/media_service.dart';
 
 /// ---------------------------------------------------------------------------
 /// Backend singletons (pure infrastructure — no screens import these).
@@ -62,6 +63,15 @@ final userRepositoryProvider = Provider<UserRepository>(
 
 final promptRepositoryProvider = Provider<PromptRepository>(
   (ref) => SupabasePromptRepository(ref.watch(supabaseClientProvider)),
+);
+
+/// Privileged image uploads go through the Next.js backend; the app never
+/// receives the Appwrite server key.
+final mediaServiceProvider = Provider<MediaService>(
+  (ref) => MediaService(
+    ref.watch(supabaseClientProvider),
+    ref.watch(httpClientProvider),
+  ),
 );
 
 final interactionRepositoryProvider = Provider<InteractionRepository>(

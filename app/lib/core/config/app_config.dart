@@ -14,7 +14,7 @@ class AppConfig {
   );
   static const String siteUrl = String.fromEnvironment(
     'SITE_URL',
-    defaultValue: 'https://promptindo.vercel.app',
+    defaultValue: 'https://www.promptindo.app',
   );
 
   static String get normalizedSiteUrl => _stripTrailingSlash(siteUrl);

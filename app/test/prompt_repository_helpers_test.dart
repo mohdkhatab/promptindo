@@ -138,15 +138,15 @@ void main() {
     test('promptIdFromUri parses /p/{uuid} with and without trailing slash', () {
       const uuid = '11111111-1111-1111-1111-111111111111';
       expect(
-        promptIdFromUri(Uri.parse('https://promptindo.vercel.app/p/$uuid')),
+        promptIdFromUri(Uri.parse('https://www.promptindo.app/p/$uuid')),
         uuid,
       );
       expect(
-        promptIdFromUri(Uri.parse('https://promptindo.vercel.app/p/$uuid/')),
+        promptIdFromUri(Uri.parse('https://www.promptindo.app/p/$uuid/')),
         uuid,
       );
       expect(
-        promptIdFromUri(Uri.parse('https://promptindo.vercel.app/?id=$uuid')),
+        promptIdFromUri(Uri.parse('https://www.promptindo.app/?id=$uuid')),
         uuid,
       );
     });

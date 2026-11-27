@@ -8,7 +8,7 @@ import '../config/app_config.dart';
 
 /// Deep links (`app_links`) — PromptIndo links resolve through the Next.js
 /// site hosted on Vercel (`AppConfig.siteUrl`, e.g.
-/// `https://promptindo.vercel.app/p/{id}`) + `assetlinks.json` / AASA, and the
+/// `https://www.promptindo.app/p/{id}`) + `assetlinks.json` / AASA, and the
 /// app opens them through universal links.
 class DeepLinkService {
   DeepLinkService(this._links);
@@ -41,6 +41,22 @@ final deepLinkServiceProvider = Provider<DeepLinkService>(
 /// Canonical share URL for a prompt using [AppConfig.normalizedSiteUrl].
 String promptShareUrl(String promptId) =>
     '${AppConfig.normalizedSiteUrl}/p/$promptId';
+
+/// True when [uri] is a Supabase password-recovery redirect.
+///
+/// Supports the `promptindo://reset-password` custom scheme and the https
+/// fallback (`/reset-password#access_token=…` or `?code=…`).
+bool isPasswordRecoveryUri(Uri uri) {
+  if (uri.scheme == 'promptindo' && uri.host == 'reset-password') {
+    return true;
+  }
+  if (uri.path == '/reset-password') return true;
+  final fragment = uri.fragment;
+  return uri.queryParameters.containsKey('code') ||
+      uri.queryParameters['type'] == 'recovery' ||
+      fragment.contains('type=recovery') ||
+      fragment.contains('access_token=');
+}
 
 /// Parses `…/p/{promptId}` (and legacy `?id=` shapes) into a prompt id.
 String? promptIdFromUri(Uri uri) {

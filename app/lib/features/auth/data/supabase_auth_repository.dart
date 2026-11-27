@@ -163,24 +163,33 @@ class SupabaseAuthRepository implements AuthRepository {
   @override
   Future<void> sendPasswordReset({required String email}) async {
     try {
-      await _supabase.auth.resetPasswordForEmail(email.trim());
+      await _supabase.auth.resetPasswordForEmail(
+        email.trim(),
+        redirectTo: 'promptindo://reset-password',
+      );
     } on AuthException catch (e) {
       throw SupabaseErrorMapper.mapAuth(e);
     }
   }
 
   @override
-  Future<void> resetPasswordWithCode({
-    required String email,
-    required String code,
-    required String newPassword,
-  }) async {
+  Future<bool> completePasswordRecovery(Uri uri) async {
     try {
-      await _supabase.auth.verifyOTP(
-        type: OtpType.recovery,
-        email: email.trim(),
-        token: code.trim(),
-      );
+      final code = uri.queryParameters['code'];
+      if (code != null && code.isNotEmpty) {
+        await _supabase.auth.exchangeCodeForSession(code);
+      } else {
+        await _supabase.auth.getSessionFromUrl(uri);
+      }
+      return _supabase.auth.currentSession != null;
+    } on AuthException catch (e) {
+      throw SupabaseErrorMapper.mapAuth(e);
+    }
+  }
+
+  @override
+  Future<void> updatePassword(String newPassword) async {
+    try {
       await _supabase.auth.updateUser(UserAttributes(password: newPassword));
     } on AuthException catch (e) {
       throw SupabaseErrorMapper.mapAuth(e);

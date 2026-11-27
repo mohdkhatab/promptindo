@@ -21,10 +21,11 @@ import '../domain/prompt.dart';
 
 /// Publish (and edit-free v1: create only) a prompt.
 ///
-/// Order of operations matches the rules: upload the thumbnail under
-/// `thumbnails/{uid}/…` first (Storage validates type + 8MB), then `add` the
-/// `prompts` doc with all counters at zero and `creator_*` fields filled from
-/// the signed-in profile — exactly the shape `firestore.rules` allows.
+/// Order of operations: compress the image locally, upload it through the
+/// authenticated Next.js media route (which stores it in Appwrite), then
+/// insert the `prompts` row with the returned public URL. The row keeps an
+/// `appwrite:<fileId>` reference so the delete webhook can remove the file.
+/// Counters/status/creator snapshots are filled by Postgres defaults/triggers.
 class CreatePromptScreen extends ConsumerStatefulWidget {
   const CreatePromptScreen({super.key, this.editingId});
 
@@ -103,20 +104,17 @@ class _CreatePromptScreenState extends ConsumerState<CreatePromptScreen> {
 
     setState(() => _busy = true);
     try {
-      final profile = await ref.read(userRepositoryProvider).getUser(uid);
-
       String thumbnailUrl = '';
       String thumbnailPath = '';
       if (_image != null) {
         final uploaded = await ref
-            .read(promptRepositoryProvider)
-            .uploadThumbnail(
-              uid: uid,
+            .read(mediaServiceProvider)
+            .uploadPostImage(
               bytes: _image!.bytes,
               fileName: _image!.fileName,
               contentType: _image!.contentType,
             );
-        thumbnailPath = uploaded.path;
+        thumbnailPath = uploaded.storageRef;
         thumbnailUrl = uploaded.url;
       }
 
@@ -136,8 +134,8 @@ class _CreatePromptScreenState extends ConsumerState<CreatePromptScreen> {
         visibility: _visibility,
         status: 'active',
         creatorId: uid,
-        creatorUsername: profile?.username ?? '',
-        creatorAvatar: profile?.avatarUrl ?? '',
+        creatorUsername: '',
+        creatorAvatar: '',
         thumbnailUrl: thumbnailUrl,
         thumbnailPath: thumbnailPath,
         likeCount: 0,

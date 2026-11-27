@@ -1,8 +1,7 @@
-// File generated for the PromptIndo Firebase project (`prompindo`).
+// File generated for the PromptIndo Firebase project (`donghuamax-6e38d`).
 //
-// Values below come from the Firebase Android app config handed over with the
-// brief. Do not commit a real production apiKey rotation without regenerating
-// this file (`flutterfire configure`).
+// The Android app (`promptindo.app`) is registered in this project. Keep this
+// file in sync with `android/app/google-services.json`.
 // ignore_for_file: type=lint
 import 'package:firebase_core/firebase_core.dart' show FirebaseOptions;
 import 'package:flutter/foundation.dart'
@@ -39,22 +38,22 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyC0ONxrttUUqrjbveJA6NygSuaZECa-63Q',
-    appId: '1:66910648137:android:97f0dd1bc066a48bb18c98',
-    messagingSenderId: '66910648137',
-    projectId: 'prompindo',
-    storageBucket: 'prompindo.firebasestorage.app',
+    apiKey: 'AIzaSyC6qaPDeOQobTYRfvUmSwn8o6rNfLY3ow0',
+    appId: '1:132450727224:android:1758c4a2a656bd6accfdcd',
+    messagingSenderId: '132450727224',
+    projectId: 'donghuamax-6e38d',
+    storageBucket: 'donghuamax-6e38d.firebasestorage.app',
   );
 
   /// iOS app must be registered in the Firebase console before it works —
   /// the bundle id `com.promptindo.ai` matches the Android applicationId so
   /// the same SHA/cert setup can be reused. See README "iOS".
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyC0ONxrttUUqrjbveJA6NygSuaZECa-63Q',
-    appId: '1:66910648137:ios:REPLACE_WITH_IOS_APP_ID',
-    messagingSenderId: '66910648137',
-    projectId: 'prompindo',
-    storageBucket: 'prompindo.firebasestorage.app',
-    iosBundleId: 'com.promptindo.ai',
+    apiKey: 'AIzaSyC6qaPDeOQobTYRfvUmSwn8o6rNfLY3ow0',
+    appId: '1:132450727224:ios:REPLACE_WITH_IOS_APP_ID',
+    messagingSenderId: '132450727224',
+    projectId: 'donghuamax-6e38d',
+    storageBucket: 'donghuamax-6e38d.firebasestorage.app',
+    iosBundleId: 'com.promptindo.promptindo',
   );
 }
