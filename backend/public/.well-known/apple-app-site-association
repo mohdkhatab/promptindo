@@ -1,0 +1,14 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "TEAMID.com.promptindo.promptindo",
+        "paths": ["/p/*", "/u/*", "/c/*"]
+      }
+    ]
+  },
+  "webcredentials": {
+    "apps": ["TEAMID.com.promptindo.promptindo"]
+  }
+}
