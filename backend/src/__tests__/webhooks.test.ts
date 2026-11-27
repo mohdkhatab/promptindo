@@ -14,7 +14,7 @@ vi.mock("@/lib/env", () => ({
     SUPABASE_ANON_KEY: "anon",
     WEBHOOK_SECRET: SECRET,
     FIREBASE_SERVICE_ACCOUNT_BASE64: "dGVzdA==",
-    SITE_URL: "https://promptindo.vercel.app",
+    SITE_URL: "https://www.promptindo.app",
   }),
 }));
 

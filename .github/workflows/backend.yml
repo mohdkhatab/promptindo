@@ -1,0 +1,62 @@
+name: Backend CI
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "backend/**"
+      - "supabase/**"
+      - "scripts/make-admin.ts"
+      - ".github/workflows/backend.yml"
+  pull_request:
+    paths:
+      - "backend/**"
+      - "supabase/**"
+      - "scripts/make-admin.ts"
+      - ".github/workflows/backend.yml"
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  backend:
+    name: Backend (lint, test, build)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - name: Install
+        working-directory: backend
+        run: npm ci --no-audit --no-fund
+      - name: Lint
+        working-directory: backend
+        run: npm run lint
+      - name: Typecheck
+        working-directory: backend
+        run: npx tsc --noEmit
+      - name: Test
+        working-directory: backend
+        env:
+          SUPABASE_URL: https://example.supabase.co
+          SUPABASE_ANON_KEY: test-anon-key
+          SUPABASE_SERVICE_ROLE_KEY: test-service-role-key
+          WEBHOOK_SECRET: test-webhook-secret
+          SITE_URL: https://www.promptindo.app
+        run: npm test
+      - name: Build
+        working-directory: backend
+        env:
+          SUPABASE_URL: https://example.supabase.co
+          SUPABASE_ANON_KEY: test-anon-key
+          SUPABASE_SERVICE_ROLE_KEY: test-service-role-key
+          WEBHOOK_SECRET: test-webhook-secret
+          SITE_URL: https://www.promptindo.app
+        run: npm run build

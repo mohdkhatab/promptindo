@@ -1,3 +1,8 @@
+import {
+  getAppwriteConfig,
+  getAppwriteStorage,
+  isSafeAppwriteFileId,
+} from "@/lib/appwrite";
 import { requireWebhookSecret } from "@/lib/auth";
 import { ApiError, handleRoute, okResponse, parseJsonBody } from "@/lib/http";
 import { promptDeletedWebhookSchema } from "@/lib/schemas";
@@ -57,6 +62,33 @@ export async function POST(req: Request) {
   return handleRoute("/api/webhooks/prompt-deleted", req, async () => {
     requireWebhookSecret(req);
     const body = await parseJsonBody(req, promptDeletedWebhookSchema);
+
+    // New post images live in Appwrite; the row stores `appwrite:<fileId>`.
+    if (body.thumbnail_path.startsWith("appwrite:")) {
+      const fileId = body.thumbnail_path.slice("appwrite:".length);
+      if (!isSafeAppwriteFileId(fileId)) {
+        throw new ApiError(400, "invalid_path", "Invalid Appwrite file id.");
+      }
+      try {
+        const config = getAppwriteConfig();
+        await getAppwriteStorage().deleteFile(config.bucketId, fileId);
+      } catch (err) {
+        const code = String(
+          (err as { code?: number | string }).code ?? "",
+        );
+        const message = String(
+          (err as { message?: string }).message ?? "",
+        ).toLowerCase();
+        if (code !== "404" && !message.includes("not found")) {
+          throw new ApiError(
+            500,
+            "media_delete_failed",
+            "Failed to remove the Appwrite post image.",
+          );
+        }
+      }
+      return okResponse({ deleted: true });
+    }
 
     if (!isSafeThumbnailPath(body.thumbnail_path, body.creator_id, body.id)) {
       throw new ApiError(

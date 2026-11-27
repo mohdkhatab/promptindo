@@ -38,7 +38,7 @@ function setValidEnv() {
       private_key: "-----BEGIN PRIVATE KEY-----\nTEST\n-----END PRIVATE KEY-----\n",
     }),
   ).toString("base64");
-  process.env.SITE_URL = "https://promptindo.vercel.app";
+  process.env.SITE_URL = "https://www.promptindo.app";
 }
 
 describe("env & auth helpers", () => {

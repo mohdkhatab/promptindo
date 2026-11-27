@@ -22,7 +22,7 @@ Status of target choices:
 ## 2. Google Cloud & Firebase (FCM Only)
 - [ ] **Google Cloud Console → OAuth 2.0 Clients**:
   - Web client ID (used in Supabase Google provider and Flutter `GOOGLE_WEB_CLIENT_ID`).
-  - Android client ID: package name **`Com.promptindo.ai`** (exact mixed case) + debug & release SHA-1 fingerprints.
+  - Android client ID: package name **`promptindo.app`** (exact mixed case) + debug & release SHA-1 fingerprints.
   - iOS client ID (if shipping iOS).
 - [ ] **Firebase Console** (keep project **only** for FCM push notifications):
   - Project Settings → Service accounts → Generate new private key (JSON).
@@ -54,7 +54,7 @@ Status of target choices:
 ## 5. Deep Links Verification Files
 - [ ] Update `backend/public/.well-known/assetlinks.json` with your Android upload/release signing key SHA-256 fingerprint (`REPLACE_WITH_YOUR_UPLOAD_KEY_SHA256`).
 - [ ] Update `backend/public/.well-known/apple-app-site-association` with your Apple Developer `TEAMID` if shipping iOS.
-- [ ] Update `app/android/app/src/main/AndroidManifest.xml` host if your deployed Vercel URL differs from `promptindo.vercel.app`.
+- [ ] Update `app/android/app/src/main/AndroidManifest.xml` host if your deployed Vercel URL differs from `www.promptindo.app`.
 
 ## 6. Flutter Build, Admin Promotion & Final Cutover
 - [ ] Update `API_BASE_URL`, `SITE_URL`, and `GOOGLE_WEB_CLIENT_ID` in `app/env/dev.json` (already pre-populated with live `SUPABASE_URL` & `SUPABASE_ANON_KEY`, gitignored) and create `app/env/prod.json`.

@@ -34,6 +34,11 @@ export function getFcmMessaging(): Messaging {
   }
 
   const env = getEnv();
+  if (!env.FIREBASE_SERVICE_ACCOUNT_BASE64) {
+    throw new Error(
+      "FIREBASE_SERVICE_ACCOUNT_BASE64 is required to send FCM push notifications",
+    );
+  }
   const sa = parseServiceAccount(env.FIREBASE_SERVICE_ACCOUNT_BASE64);
   const app =
     getApps().length > 0

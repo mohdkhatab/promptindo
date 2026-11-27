@@ -3,9 +3,9 @@
     "relation": ["delegate_permission/common.handle_all_urls"],
     "target": {
       "namespace": "android_app",
-      "package_name": "Com.promptindo.ai",
+      "package_name": "promptindo.app",
       "sha256_cert_fingerprints": [
-        "REPLACE_WITH_YOUR_UPLOAD_KEY_SHA256"
+        "REPLACE_WITH_CI_RELEASE_SHA256"
       ]
     }
   }

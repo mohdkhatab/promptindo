@@ -72,7 +72,7 @@ Copy `backend/.env.example`:
 - `SUPABASE_SERVICE_ROLE_KEY` — **Server-only** Supabase service-role secret key (never expose to Flutter or `NEXT_PUBLIC_*`)
 - `WEBHOOK_SECRET` — Random secret (`>= 32` bytes, e.g. `openssl rand -hex 32`) matching Vault `webhook_secret`
 - `FIREBASE_SERVICE_ACCOUNT_BASE64` — Base64-encoded Firebase service-account JSON (FCM only)
-- `SITE_URL` — Public site URL (e.g. `https://promptindo.vercel.app`)
+- `SITE_URL` — Public site URL (e.g. `https://www.promptindo.app`)
 
 ### Flutter (`app/env/dev.json`, gitignored)
 Copy `app/env/dev.example.json`:

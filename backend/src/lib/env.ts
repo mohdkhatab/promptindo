@@ -9,8 +9,19 @@ const serverEnvSchema = z.object({
   WEBHOOK_SECRET: z.string().min(1, "WEBHOOK_SECRET is required"),
   FIREBASE_SERVICE_ACCOUNT_BASE64: z
     .string()
-    .min(1, "FIREBASE_SERVICE_ACCOUNT_BASE64 is required"),
+    .optional()
+    .default(""),
   SITE_URL: z.string().url("SITE_URL must be a valid URL"),
+  // Appwrite media storage (server-only). Optional at boot so non-media
+  // routes/tests keep working; media handlers fail clearly when missing.
+  APPWRITE_ENDPOINT: z
+    .string()
+    .url("APPWRITE_ENDPOINT must be a valid URL")
+    .optional()
+    .default(""),
+  APPWRITE_PROJECT_ID: z.string().optional().default(""),
+  APPWRITE_BUCKET_ID: z.string().optional().default(""),
+  APPWRITE_API_KEY: z.string().optional().default(""),
 });
 
 const publicEnvSchema = z.object({
@@ -20,7 +31,7 @@ const publicEnvSchema = z.object({
     .string()
     .url()
     .optional()
-    .default("https://promptindo.vercel.app"),
+    .default("https://www.promptindo.app"),
 });
 
 export type ServerEnv = z.infer<typeof serverEnvSchema>;
@@ -53,6 +64,10 @@ export function getEnv(): ServerEnv {
     FIREBASE_SERVICE_ACCOUNT_BASE64:
       process.env.FIREBASE_SERVICE_ACCOUNT_BASE64,
     SITE_URL: process.env.SITE_URL,
+    APPWRITE_ENDPOINT: process.env.APPWRITE_ENDPOINT,
+    APPWRITE_PROJECT_ID: process.env.APPWRITE_PROJECT_ID,
+    APPWRITE_BUCKET_ID: process.env.APPWRITE_BUCKET_ID,
+    APPWRITE_API_KEY: process.env.APPWRITE_API_KEY,
   });
 
   if (!parsed.success) {
@@ -98,7 +113,7 @@ export function getSiteUrl(): string {
       return parsed.data.replace(/\/+$/, "");
     }
   }
-  return "https://promptindo.vercel.app";
+  return "https://www.promptindo.app";
 }
 
 export function resetEnvCacheForTests(): void {
