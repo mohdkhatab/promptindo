@@ -9,9 +9,16 @@ storage-debug.log
 
 # Node
 node_modules/
-lib/
+functions/lib/
 *.tsbuildinfo
 functions/.runtimeconfig.json
+
+# Env files (never commit real secrets)
+.env
+.env*.local
+!.env.example
+app/env/*.json
+!app/env/*.example.json
 
 # Flutter / Dart
 .dart_tool/
